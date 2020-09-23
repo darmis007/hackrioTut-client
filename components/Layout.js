@@ -58,9 +58,9 @@ const Layout = ({ children }) => {
                 )
             }
             {
-                isAuth() && isAuth().role === 'subscriber' && (
+                isAuth() && isAuth().role !== 'admin' && (
                     <li className="nav-item ml-auto">
-                    <Link href="/admin">
+                    <Link href="/user">
                 <a className="nav-link text-dark">{isAuth().name}</a>
                     </Link>
                 </li>   
