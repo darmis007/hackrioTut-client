@@ -35,17 +35,18 @@ const Login = () => {
             buttonText:'Logging In'
         })
         try {
-            const response = await axios.post(`http://localhost:8000/api/login`, {
+            const response = await axios.post(`http://localhost:8000/api/login/`, {
                 email,
                 password
             });
+            console.log(response)
 
             authenticate(response, () => isAuth() && isAuth().role === 'admin' ? Router.push('/admin') : Router.push('/user') )
    
         }
-        catch (error) {
+        catch (err) {
             setState({
-                ...state,buttonText:'login', error: error.response.data.error
+                ...state,buttonText:'login', error: err.response.data.error
             })
         }
     }

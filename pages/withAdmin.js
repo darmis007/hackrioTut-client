@@ -41,4 +41,4 @@ const withAdmin = Page => {
     return withAdminUser
 }
 
-export default withAdmin
+export default withAdmin;
