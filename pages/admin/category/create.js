@@ -4,100 +4,127 @@ import { showSuccessMessage, showErrorMessage} from '../../../helpers/alerts';
 import { getCookie } from '../../../helpers/auth'
 import withAdmin from '../../withAdmin'
 
+import dynamic from 'next/dynamic'
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Router from 'next/router';
+import Resizer from 'react-image-file-resizer';
+const ReactQuill = dynamic(() => import('react-quill'),{ssr:false});
+import 'react-quill/dist/quill.bubble.css'; 
 
-const Create = ({user, token}) => {
-
+const Create = ({ user, token }) => {
     const [state, setState] = useState({
         name: '',
-        content: '',
         error: '',
         success: '',
-        formData: process.browser && new FormData(),
         buttonText: 'Create',
-        imageUploadText:'Upload Image'
-    })
+        image: ''
+    });
+    const [content, setContent] = useState('')
+    const [imageUploadButtonName, setImageUploadButtonName] = useState('Upload image');
 
-    const { name, content, success, error, formData, buttonText, imageUploadText} = state
-
+    const { name, success, error, image, buttonText, imageUploadText } = state;
 
     const handleChange = name => e => {
-        const value = name === "image"? e.target.files[0] : e.target.value
-        const imageName = name === "image" ? event.target.files[0].name : "Upload Image"
-        formData.set(name, value)
-        setState({ ...state, [name]: value, imageUploadText: imageName, error: '', success: '' });
+        setState({ ...state, [name]: e.target.value, error: '', success: '' });
+    };
+
+    const handleContent = e => {
+        console.log(e)
+        setContent(e)
+        setState({...state, success:'',error:''})
+    }
+
+    const handleImage = event => {
+        let fileInput = false;
+        if (event.target.files[0]) {
+            fileInput = true;
+        }
+        setImageUploadButtonName(event.target.files[0].name);
+        if (fileInput) {
+            Resizer.imageFileResizer(
+                event.target.files[0],
+                300,
+                300,
+                'JPEG',
+                100,
+                0,
+                uri => {
+                    // console.log(uri);
+                    setState({ ...state, image: uri, success: '', error: '' });
+                },
+                'base64'
+            );
+        }
     };
 
     const handleSubmit = async e => {
         e.preventDefault();
-        setState({
-            ...state,
-            buttonText:'Creating'
-        })
-        //console.log(...formData)
+        setState({ ...state, buttonText: 'Creating' });
+        console.table({ name, content, image });
         try {
-            const response = await axios.post(`${API}/category`, formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`
+            const response = await axios.post(
+                `${API}/category`,
+                { name, content, image },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 }
-            })
-            console.log("Category Created RESPONSE", response)
+            );
+            console.log('CATEGORY CREATE RESPONSE', response);
+            setImageUploadButtonName('Upload image');
             setState({
                 ...state,
-                name:'',
-                content:'',
-                formData:'',
-                buttonText:'Created',
-                imageUploadText: 'Upload Image',
-                success:` Category created successfully`,
-                error: ''
-            })
-        } catch (err) {
-            console.log("CATEGORY ERROR, ",err)
-            setState({
-                ...state,
-                name:'',
-                buttonText:'Create',
-                error:error.response.data.error,
-                success:''
-            })
+                name: '',
+                buttonText: 'Created',
+                imageUploadText: 'Upload image',
+                success: `${response.data.name} is created`
+            });
+        } catch (error) {
+            console.log('CATEGORY CREATE ERROR', error);
+            setState({ ...state, buttonText: 'Create', error: error.response.data.error });
         }
-    }
+    };
 
-    const createCategoryForm  = () => { return (
+    const createCategoryForm = () => (
         <form onSubmit={handleSubmit}>
             <div className="form-group">
                 <label className="text-muted">Name</label>
-                <input onChange={handleChange('name')} type="text" className="form-control" value={name} required />
+                <input onChange={handleChange('name')} value={name} type="text" className="form-control" required />
             </div>
             <div className="form-group">
                 <label className="text-muted">Content</label>
-                <input onChange={handleChange('content')} type="text" className="form-control" value={content} required />
+                <ReactQuill value={content} onChange={handleContent}
+                placeholder="Write Something" className="pb-5 mb-3"
+                theme="bubble" style={{border:'1px solid #666'}} />
             </div>
             <div className="form-group">
-                <label className="text-muted">Image</label>
-                <input onChange={handleChange('image')} type="file" className="form-control" required />
+                <label className="btn btn-outline-secondary">
+                    {imageUploadButtonName}
+                    <input onChange={handleImage} type="file" accept="image/*" className="form-control" hidden />
+                </label>
             </div>
             <div>
-                <button type="submit" className="btn btn-outline-warning">{buttonText}</button>
+                <button className="btn btn-outline-warning">{buttonText}</button>
             </div>
-
         </form>
-    )}
+    );
 
     return (
         <Layout>
-            <div className="col-md-6 offset-md-3">
-                <h1>Create Category</h1>
-                <br />
-                {success && showSuccessMessage(success)}
-                {error && showErrorMessage(error)}
-                {createCategoryForm()}
+            <div className="row">
+                <div className="col-md-6 offset-md-3">
+                    <h1>Create category</h1>
+                    <br />
+                    {success && showSuccessMessage(success)}
+                    {error && showErrorMessage(error)}
+                    {createCategoryForm()}
+                </div>
             </div>
         </Layout>
-    )
-}
+    );
+};
+
 export default withAdmin(Create);
