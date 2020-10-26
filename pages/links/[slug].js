@@ -32,7 +32,7 @@ const Links = ({
 
   const listOfLinks = () =>
     allLinks.map((l, i) => (
-      <div className="row alert alert-primary p-2">
+      <div className="row alert alert-primary p-2" key={i}>
         <div className="col-md-8" onClick={(e) => handleClick(l._id)}>
           <a href={l.url} target="_blank">
             <h5 className="pt-2">{l.title}</h5>
@@ -54,7 +54,9 @@ const Links = ({
             {l.type} / {l.medium}
           </span>
           {l.categories.map((c, i) => (
-            <span className="badge text-success">{c.name}</span>
+            <span className="badge text-success" key={i}>
+              {c.name}
+            </span>
           ))}
         </div>
       </div>
@@ -119,7 +121,9 @@ const Links = ({
             pageStart={0}
             loadMore={loadMore}
             hasMore={size > 0 && size >= limit}
-            loader={<img src="/static/images/loading.gif" alt="loading"></img>}
+            loader={
+              <img key={0} src="/static/images/loading.gif" alt="loading"></img>
+            }
           ></InfiniteScroll>
         </div>
       </div>
