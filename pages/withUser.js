@@ -3,10 +3,11 @@ import { API } from "../config";
 import { getCookie } from "../helpers/auth";
 
 const withUser = (Page) => {
-  const withAuthUser = (props) => <Page {...props} />;
-  withAuthUser.getInitialProps = async (context) => {
+  const WithAuthUser = (props) => <Page {...props} />;
+  WithAuthUser.getInitialProps = async (context) => {
     const token = getCookie("token", context.req);
     let user = null;
+    let userLinks = [];
 
     if (token) {
       try {
@@ -16,16 +17,18 @@ const withUser = (Page) => {
             contentType: "application/json",
           },
         });
-        user = response.data;
+        console.log("response in withUser", response);
+        user = response.data.user;
+        userLinks = response.data.links;
       } catch (error) {
-        if (error.response.status == 401) {
+        if (error.response.status === 401) {
           user = null;
         }
       }
     }
 
-    if (user == null) {
-      // redirect to Login Page
+    if (user === null) {
+      // redirect
       context.res.writeHead(302, {
         Location: "/",
       });
@@ -35,11 +38,12 @@ const withUser = (Page) => {
         ...(Page.getInitialProps ? await Page.getInitialProps(context) : {}),
         user,
         token,
+        userLinks,
       };
     }
   };
 
-  return withAuthUser;
+  return WithAuthUser;
 };
 
 export default withUser;

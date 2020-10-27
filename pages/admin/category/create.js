@@ -84,6 +84,7 @@ const Create = ({ user, token }) => {
         imageUploadText: "Upload image",
         success: `${response.data.name} is created`,
       });
+      setContent("");
     } catch (error) {
       console.log("CATEGORY CREATE ERROR", error);
       setState({

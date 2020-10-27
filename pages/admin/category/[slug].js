@@ -77,6 +77,7 @@ const Update = ({ oldCategory, token }) => {
         ...state,
         imagePreview: response.data.image.url,
         success: `${response.data.name} is updated`,
+        error: "",
       });
       setContent(response.data.content);
     } catch (error) {
@@ -85,6 +86,7 @@ const Update = ({ oldCategory, token }) => {
         ...state,
         buttonText: "Create",
         error: error.response.data.error,
+        success: "",
       });
     }
   };
